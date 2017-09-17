@@ -1,0 +1,11 @@
+{
+  "name": "protoc-gen-lint",
+  "description": "scans your protobuf files for suggestions and warnings",
+  "maintainer": {
+    "name": "Sam Gammon",
+    "email": "sam@bloombox.io"
+  },
+  "languages" : ["Protocol Buffer"],
+  "version": "alpha-a0",
+  "spec_version": "0.0.1"
+}

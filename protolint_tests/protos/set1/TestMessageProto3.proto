@@ -1,0 +1,26 @@
+
+syntax = "proto3";
+
+package testing;
+
+
+message TestMessageProto3 {
+  string test = 1;
+  int32 test2 = 2;
+}
+
+
+enum SampleFailingEnum {
+  hello = 0;
+  THIS_REALLY_PISSES_PEOPLE_OFF_ = 1;
+}
+
+
+message sampleLameMessageTitle {
+  string sample = 1;
+}
+
+
+message SampleMessage {
+  string aggravatingCamelCase = 1;
+}

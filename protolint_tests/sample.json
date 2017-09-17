@@ -1,0 +1,5 @@
+{
+  "include_paths": [
+    "protos/set1"
+  ]
+}

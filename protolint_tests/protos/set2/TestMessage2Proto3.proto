@@ -1,0 +1,16 @@
+
+syntax = "proto3";
+
+package testing;
+
+
+message TestMessage2Proto3 {
+  string test = 1;
+  int32 test2 = 2;
+  repeated EmbeddedMessage embedded = 3;
+
+  message EmbeddedMessage {
+    string test = 1;
+    int32 test2 = 2;
+  }
+}

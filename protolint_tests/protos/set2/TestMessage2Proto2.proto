@@ -1,0 +1,16 @@
+
+syntax = "proto2";
+
+package testing;
+
+
+message TestMessage2Proto2 {
+  required string test = 1;
+  optional int32 test2 = 2;
+  optional repeated EmbeddedMessage embedded = 3;
+
+  message EmbeddedMessage {
+    required string test = 1;
+    optional int32 test2 = 2;
+  }
+}

@@ -1,0 +1,8 @@
+.env/
+.DS_Store
+*.DS_Store
+build/
+dist/
+*.pyc
+*.pyo
+.coverage
