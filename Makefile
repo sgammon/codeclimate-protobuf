@@ -85,7 +85,7 @@ link:
 dependencies:
 	$(call say,"Installing dependencies for 'protolint'...")
 	@$(BIN)easy_install pip
-	@$(BIN)pip install -r requirements.txt
+	@$(BIN)pip install -r requirements.txt --upgrade
 
 environment: $(ENV)
 
