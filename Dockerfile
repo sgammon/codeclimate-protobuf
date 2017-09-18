@@ -1,4 +1,4 @@
-FROM golang:1.6.2-alpine
+FROM sgammon/protoc-alpine:latest
 
 MAINTAINER Sam Gammon <sam@bloombox.io>
 
