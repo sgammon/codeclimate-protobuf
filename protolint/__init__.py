@@ -7,8 +7,8 @@
 
 """
 
+__version__ = (1, 0, 0)
+
 from . import cli
 from . import linter
 from . import output
-
-__version__ = (1, 0, 0)
