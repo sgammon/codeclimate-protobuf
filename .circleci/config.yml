@@ -33,7 +33,6 @@ jobs:
       - run:
           name: Upload Coverage
           command: |
-            .env/bin/pip install --upgrade codeclimate-test-reporter
             CODECLIMATE_REPO_TOKEN=d3deb90ab29eaa7d14ebb0d7934e43bbfbd742b9efb741f55f4331e324fde71a .env/bin/codeclimate-test-reporter
 
       - store_artifacts:
