@@ -4,7 +4,7 @@
 from distutils.core import setup
 
 setup(name='protolint',
-      version='1.0.0',
+      version='1.0.1',
       description='CodeClimate linter for Protobuf, using protoc-gen-lint',
       author='Sam Gammon',
       author_email='sam@bloombox.io',
