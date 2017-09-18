@@ -14,7 +14,7 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
-            sudo apt-get update && sudo apt-get install -y protobuf-compiler golang
+            sudo apt-get update && sudo apt-get install -y python-software-properties protobuf-compiler go
             go get github.com/ckaznocha/protoc-gen-lint
             make environment dependencies 
             . .env/bin/activate
