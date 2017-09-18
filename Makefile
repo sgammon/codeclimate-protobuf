@@ -73,6 +73,7 @@ $(DIST):
 image:
 	$(call say,"Building 'protolint' image...")
 	@docker build $(DOCKER_BUILD_ARGS) sgammon/protolint:$(DOCKER_TAG) .
+	@docker build $(DOCKER_BUILD_ARGS) codeclimate/codeclimate-protolint .
 
 base-image:
 	@$(MAKE) -C base
