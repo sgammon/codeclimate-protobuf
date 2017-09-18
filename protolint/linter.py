@@ -90,6 +90,7 @@ class Linter(object):
   __issues = None  # issues detected during the lint process
   __exit = 0  # exit code to use when done
   __arguments = None  # arguments from the CLI
+  __protofiles = None  # frozenset of files found for scanning
 
   def __init__(self, config, arguments):
 
@@ -168,6 +169,7 @@ class Linter(object):
 
     base.extend(prefixes)
     base.extend(protofiles)
+    self.__protofiles = frozenset(protofiles)
     base.append('--lint_out=/.linter')
     return base
 
@@ -291,6 +293,14 @@ class Linter(object):
         :returns: `config.LinterConfig` for this linter. """
 
     return self.__config
+
+  @property
+  def protofiles(self):
+
+    """ Return the files being scanned by the linter.
+        :returns: Files being scanned. """
+
+    return self.__protofiles
 
   @property
   def workspace(self):
