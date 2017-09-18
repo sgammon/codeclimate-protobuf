@@ -12,6 +12,17 @@ engines:
     enabled: true
   pep8:
     enabled: true
+    checks:
+      E111:
+        enabled: false
+      E114:
+        enabled: false
+      E266:
+        enabled: false
+      E701:
+        enabled: false
+      E402:
+        enabled: false
   radon: 
     enabled: true
     config:
