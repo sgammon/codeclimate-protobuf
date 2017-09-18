@@ -6,11 +6,11 @@ language: python
 python:
   - "2.7"
 before_install:
+  - make distclean
   - sudo apt-get -qq update
   - sudo apt-get install -y protobuf-compiler libprotobuf-dev golang
   - go get github.com/ckaznocha/protoc-gen-lint
 install:
-  - make distclean
   - make
 script:
   - make test
