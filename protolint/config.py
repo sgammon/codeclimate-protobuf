@@ -35,7 +35,7 @@ class LinterConfig(object):
     try:
       with open(filepath, 'r') as fhandle:
         self.__config = json.load(fhandle)
-    
+
     except IOError as e:
       print("Encountered IOError while reading config file: %s" % e)
       sys.exit(1)
