@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Build and Test
           command: |
-            make
+            make build test release
 
       - run:
           name: Upload Coverage
