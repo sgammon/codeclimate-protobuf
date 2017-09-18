@@ -466,7 +466,7 @@ class Issue(object):
     """ Serialize the exported version of this structure for use with CodeClimate.
         :returns: JSON-serialized exported object. """
 
-    return json.dumps(exported)
+    return json.dumps(exported) + "\0"
 
   def export(self):
 
