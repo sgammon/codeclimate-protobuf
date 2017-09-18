@@ -8,7 +8,6 @@ python:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y protobuf-compiler libprotobuf-dev golang
-  - pip install codeclimate-test-reporter
   - yes y | pip uninstall coverage
   - go get github.com/ckaznocha/protoc-gen-lint
 install:
@@ -16,4 +15,5 @@ install:
 script:
   - make test
 after_script:
-  - codeclimate-test-reporter
+  - .env/bin/pip install codeclimate-test-reporter
+  - .env/bin/codeclimate-test-reporter
