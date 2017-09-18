@@ -29,7 +29,7 @@ class Linter(object):
     messageCase = 1  # 'Use CamelCase (with an initial capital) for message names.'
     fieldCase = 2  # 'Use underscore_separated_names for field names.'
     enumTypeCase = 3  # 'Use CamelCase (with an initial capital) for enum type names.'
-    enumValueCase = 4  # 'Use CAPITALS_WITH_UNDERSCORES  for enum value names.'
+    enumValueCase = 4  # 'Use CAPITALS_WITH_UNDERSCORES for enum value names.'
     serviceCase = 5  # 'Use CamelCase (with an initial capital) for service names.'
     rpcMethodCase = 6  # 'Use CamelCase (with an initial capital) for RPC method names.'
 
@@ -78,7 +78,7 @@ class Linter(object):
     Warnings.messageCase: "Use CamelCase (with an initial capital) for message names.",
     Warnings.enumTypeCase: "Use underscore_separated_names for field names.",
     Warnings.serviceCase: "Use CamelCase (with an initial capital) for enum type names.",
-    Warnings.fieldCase: "Use CAPITALS_WITH_UNDERSCORES  for enum value names.",
+    Warnings.fieldCase: "Use CAPITALS_WITH_UNDERSCORES for enum value names.",
     Warnings.enumValueCase: "Use CamelCase (with an initial capital) for service names.",
     Warnings.rpcMethodCase: "Use CamelCase (with an initial capital) for RPC method names."
   }
