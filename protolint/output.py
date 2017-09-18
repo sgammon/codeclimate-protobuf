@@ -60,7 +60,7 @@ def issue(detected):
 
   """ Output a CodeClimate-formatted JSON issue to `stdout`.
 
-	  :param detected: Detected `linter.Issue` object to format. """
+    :param detected: Detected `linter.Issue` object to format. """
 
   if not __debug__:  # pragma: no cover
     print >> sys.stdout, detected()

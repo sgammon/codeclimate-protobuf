@@ -242,7 +242,7 @@ class Linter(object):
 
     try:
       result = subprocess.check_output(' '.join(command), stderr=subprocess.STDOUT, shell=True)
-      
+
     except subprocess.CalledProcessError as e:
       if e.output:
         # we have output
@@ -279,7 +279,6 @@ class Linter(object):
       output.info('Reporting %s issues.' % len(issues_to_output))
 
     return issues_to_output
-
 
   ## -- Properties -- ##
   @property
