@@ -40,7 +40,7 @@ all: clean $(TARGET) link test release image
 
 clean:
 	$(call say,"Cleaning 'protolint' build targets...")
-	@rm $(RM_FLAGS) $(TARGET) $(DIST)
+	@rm $(RM_FLAGS) $(TARGET) $(DIST) .coverage
 
 	$(call say,"Cleaning ephemeral files...")
 	@find . -name .DS_Store -delete
@@ -63,7 +63,7 @@ $(TARGET): environment dependencies
 test:
 	$(call say,"Running 'protolint' testsuite...")
 	@mkdir -p $(ENV)/coverage $(ENV)/tests
-	@$(BIN)/nosetests --with-coverage --cover-package=protolint --with-xunit --xunit-file=$(ENV)/tests/tests.xml --cover-xml --cover-xml-file=$(ENV)/coverage/coverage.xml
+	@$(BIN)/nosetests --with-coverage --cover-erase --cover-package=protolint --with-xunit --xunit-file=$(ENV)/tests/tests.xml --cover-xml --cover-xml-file=$(ENV)/coverage/coverage.xml
 
 release: $(DIST)
 $(DIST):
@@ -85,7 +85,7 @@ link:
 dependencies:
 	$(call say,"Installing dependencies for 'protolint'...")
 	@$(BIN)easy_install pip
-	@$(BIN)pip install -r requirements.txt
+	@$(BIN)pip install -r requirements.txt --upgrade
 
 environment: $(ENV)
 
