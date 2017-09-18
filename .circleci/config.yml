@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.8.1
+      - image: sgammon/protolint-ci:latest
     working_directory: ~/repo
     steps:
       - checkout
