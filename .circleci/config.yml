@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:2.7
+      - image: circleci/golang:1.8.1
     working_directory: ~/repo
     steps:
       - checkout
@@ -14,7 +14,7 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
-            sudo apt-get update && sudo apt-get install -y python-software-properties protobuf-compiler go
+            sudo apt-get update && sudo apt-get install -y python-software-properties protobuf-compiler python2.7
             go get github.com/ckaznocha/protoc-gen-lint
             make environment dependencies 
             . .env/bin/activate
