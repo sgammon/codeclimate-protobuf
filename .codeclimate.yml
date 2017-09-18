@@ -26,3 +26,5 @@ ratings:
    - "requirements.txt"
    - "protolint/**.py"
 
+exclude_paths:
+- "protolint_tests/**.py"
