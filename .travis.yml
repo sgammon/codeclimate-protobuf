@@ -10,4 +10,4 @@ addons:
   apt:
     packages:
     - protobuf
-    - go
+    - golang
