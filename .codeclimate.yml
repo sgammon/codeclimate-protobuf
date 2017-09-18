@@ -1,0 +1,28 @@
+engines:
+  fixme:
+    enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - python
+  git-legal:
+    enabled: true
+  gnu-complexity:
+    enabled: true
+  pep8:
+    enabled: true
+  radon: 
+    enabled: true
+    config:
+      threshold: "C"
+      python_version: 2
+  shellcheck:
+    enabled: true
+
+ratings:
+   paths:
+   - "*.sh"
+   - "requirements.txt"
+   - "protolint/**.py"
+

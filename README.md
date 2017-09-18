@@ -1,8 +1,6 @@
 
-# protolint
+# protolint [![Build Status](https://travis-ci.org/sgammon/codeclimate-protobuf.svg?branch=master)](https://travis-ci.org/sgammon/codeclimate-protobuf)
 ## support for `protobuf` in CodeClimate
-
-[![Build Status](https://travis-ci.org/sgammon/codeclimate-protobuf.svg?branch=master)](https://travis-ci.org/sgammon/codeclimate-protobuf)
 
 This tool wraps `protoc-gen-lint` to generate improvement suggestions for your `.proto`s. It then outputs those items in CodeClimate's JSON format, so it can be used as a [CodeClimate Engine](http://blog.codeclimate.com/blog/2015/07/07/build-your-own-codeclimate-engine/).
 
