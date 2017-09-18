@@ -8,7 +8,7 @@ python:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y protobuf-compiler libprotobuf-dev golang
-  - yes y | pip uninstall coverage ; exit 0
+  - which coverage && yes y | pip uninstall coverage
   - go get github.com/ckaznocha/protoc-gen-lint
 install:
   - make
