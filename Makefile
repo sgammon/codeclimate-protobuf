@@ -70,9 +70,21 @@ $(DIST):
 	$(call say,"Cutting 'protolint' release...")
 	@python setup.py $(RELEASE_TARGETS)
 
-image:
+image: base-image
 	$(call say,"Building 'protolint' image...")
 	@docker build $(DOCKER_BUILD_ARGS) sgammon/protolint:$(DOCKER_TAG) .
+
+base-image:
+	$(call say,"Building 'protoc-alpine' image...")
+	@$(MAKE) -C base
+
+push: base-image-push
+	$(call say,"Pushing 'protolint' image...")
+	@docker push sgammon/protolint:$(DOCKER_TAG)
+
+base-image-push:
+	$(call say,"Pushing 'protoc-alpine' image...")
+	@$(MAKE) -C base push
 
 link:
 	$(call say,"Resolving tools...")
