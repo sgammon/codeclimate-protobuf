@@ -72,7 +72,7 @@ $(DIST):
 
 image:
 	$(call say,"Building 'protolint' image...")
-	@docker build $(DOCKER_BUILD_ARGS) protolint:$(DOCKER_TAG) .
+	@docker build $(DOCKER_BUILD_ARGS) sgammon/protolint:$(DOCKER_TAG) .
 
 link:
 	$(call say,"Resolving tools...")
