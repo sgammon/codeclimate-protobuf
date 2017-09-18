@@ -40,7 +40,7 @@ all: clean $(TARGET) link test release image
 
 clean:
 	$(call say,"Cleaning 'protolint' build targets...")
-	@rm $(RM_FLAGS) $(TARGET) $(DIST)
+	@rm $(RM_FLAGS) $(TARGET) $(DIST) .coverage
 
 	$(call say,"Cleaning ephemeral files...")
 	@find . -name .DS_Store -delete
