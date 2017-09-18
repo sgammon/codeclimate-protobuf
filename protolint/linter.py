@@ -126,7 +126,6 @@ class Linter(object):
       resolved_path = os.path.abspath(
         os.path.join(self.config.workspace, path))
 
-
     find_output = subprocess.check_output(
       ['find', resolved_path, '-name', '*.proto'])
 
@@ -137,7 +136,7 @@ class Linter(object):
   def __command(self, base):
 
     """ Generate command flags to pass to `protoc`.
-        
+
         :param base: Initial command arguments.
         :return: Command flags, based on config. """
 

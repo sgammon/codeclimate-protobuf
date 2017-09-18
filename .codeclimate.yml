@@ -13,6 +13,10 @@ engines:
   pep8:
     enabled: true
     checks:
+      E401:
+        enabled: false
+      E501:
+        enabled: false
       E111:
         enabled: false
       E114:
