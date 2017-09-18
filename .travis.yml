@@ -1,19 +1,18 @@
 env:
   global:
     - CC_TEST_REPORTER_ID=d3deb90ab29eaa7d14ebb0d7934e43bbfbd742b9efb741f55f4331e324fde71a
+    - CODECLIMATE_REPO_TOKEN=d3deb90ab29eaa7d14ebb0d7934e43bbfbd742b9efb741f55f4331e324fde71a
 language: python
 python:
   - "2.7"
 before_install:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
   - sudo apt-get -qq update
   - sudo apt-get install -y protobuf-compiler libprotobuf-dev golang
-install:
+  - pip install codeclimate-test-reporter
   - go get github.com/ckaznocha/protoc-gen-lint
+install:
   - make
 script:
   - make test
 after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
+  - codeclimate-test-reporter

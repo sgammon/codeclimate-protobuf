@@ -63,7 +63,7 @@ $(TARGET): environment dependencies
 test:
 	$(call say,"Running 'protolint' testsuite...")
 	@mkdir -p $(ENV)/coverage $(ENV)/tests
-	@$(BIN)/nosetests --with-coverage --cover-package=protolint --with-xunit --xunit-file=$(ENV)/tests/tests.xml --cover-xml --cover-xml-file=$(ENV)/coverage/coverage.xml
+	@$(BIN)/nosetests --with-coverage --cover-erase --cover-package=protolint --with-xunit --xunit-file=$(ENV)/tests/tests.xml --cover-xml --cover-xml-file=$(ENV)/coverage/coverage.xml
 
 release: $(DIST)
 $(DIST):
