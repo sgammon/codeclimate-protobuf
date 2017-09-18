@@ -12,3 +12,4 @@ protolint_tests/__init__.py
 protolint_tests/base.py
 protolint_tests/test_cli.py
 protolint_tests/test_config.py
+protolint_tests/test_run.py
