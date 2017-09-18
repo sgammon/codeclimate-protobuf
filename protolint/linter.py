@@ -225,6 +225,7 @@ class Linter(object):
       issue_column_number = issue_file_line_context.split(':')[2]
 
       yield Issue(
+        self,
         raw=raw_issue,
         type=self.__resolve(issue_message),
         message=issue_message,
@@ -362,22 +363,25 @@ class Issue(object):
   ## -- Internals -- ##
   __raw = None  # raw output for this issue
   __type = None  # parsed type of this issue
+  __linter = None  # linter that created this
   __message = None  # message that was emitted
   __protofile = None  # protobuf file that caused the issue
   __protoline = None  # line in protobuf file that caused the issue
   __protocolumn = None  # column in the line in the protobuf file
   __protocontext = None  # extra context for the issue offered by the plugin
 
-  def __init__(self, raw, type, message, protofile, protoline, protocolumn, protocontext):
+  def __init__(self, linter, raw, type, message, protofile, protoline, protocolumn, protocontext):
 
     """ Initialize a detected issue from the `protoc-gen-lint` tool.
 
+        :param linter: The linter that created this object.
         :param raw: Raw line as emitted by the tool.
         :param code: Numeric code corresponding to this issue type.
         :param message: Message emitted by the tool, parsed from `raw`.
         :param protofile: Protobuf file that caused the issue.
         :param protoline: Line in the protobuf file that caused the issue. """
 
+    self.__linter = linter
     self.__type = type
     self.__raw = raw
     self.__message = message
@@ -396,6 +400,26 @@ class Issue(object):
       self.__protocolumn,
       self.__protocontext,
       self.__message)
+
+  def __make_path_for_protofile(self, protofile):
+
+    """ Make an absolute link for a protofile.
+
+        :param protofile: Protobuf file postfix.
+        :return: Path to protofile from workspace root. """
+
+    resolved_path = None
+    for path in self.__linter.protofiles:
+      if path.endswith(protofile):
+        resolved_path = path
+
+    if not resolved_path:
+      raise ValueError("unable to resolve absolute path for protobuf file: %s" % protofile)
+
+    resolved_path = resolved_path.replace(self.__linter.workspace, "")
+    if resolved_path.startswith("/"):
+      return "/".join(resolved_path.split("/")[1:])
+    return resolved_path
 
   ## -- Properties -- ##
   @property
@@ -492,8 +516,8 @@ class Issue(object):
       "severity": Linter.Severity[self.__type],
       "fingerprint": self.unique_hash,
       "location": {
-        "path": self.__protofile,
-        "lines": {
+        "path": self.__make_path_for_protofile(self.__protofile),
+        "positions": {
           "begin": {
             "line": self.__protoline,
             "column": self.__protocolumn
