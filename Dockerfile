@@ -1,7 +1,7 @@
 FROM sgammon/protoc-alpine:latest
 
 MAINTAINER Sam Gammon <sam@bloombox.io>
-
+LABEL maintainer "Sam Gammon <sam@bloombox.io>"
 RUN adduser -u 9000 -D -s /bin/false app
 ADD engine.json /engine.json
 ADD requirements.txt /requirements.txt
