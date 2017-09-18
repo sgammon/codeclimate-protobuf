@@ -85,7 +85,6 @@ class Linter(object):
 
   ## -- Internals -- ##
   __config = None  # config for the linter, parsed from JSON
-  __workspace = None  # reference to the folder for the workspace
   __raw_output = None  # raw output from `protoc-gen-lint`
   __issues = None  # issues detected during the lint process
   __exit = 0  # exit code to use when done
@@ -308,7 +307,7 @@ class Linter(object):
     """ Returns the workspace being scanned.
         :returns: Current workspace. """
 
-    return self.__workspace
+    return self.__config.workspace
 
   @property
   def raw_output(self):
