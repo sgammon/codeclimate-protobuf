@@ -13,4 +13,4 @@ ENV PYTHONPATH "/protolint/protolint-1.0.2:/protolint/site-packages:/usr/lib/pyt
 WORKDIR /code
 USER app
 VOLUME /code
-CMD ["bash", "/protolint.sh"]
+CMD ["bash", "/protolint.sh", "/config.json", "/code"]
