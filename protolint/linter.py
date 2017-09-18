@@ -253,7 +253,7 @@ class Linter(object):
           # process final line
           if '--lint_out: protoc-gen-lint: Plugin failed' in line:
             # parse number of reported issues from following format:
-            # '--lint_out: protoc-gen-lint: Plugin failed with status code 3.'            
+            # '--lint_out: protoc-gen-lint: Plugin failed with status code 3.'
             try:
               lastline_split = line.split(' ')
               count_str = lastline_split[-1].replace('.', '').strip()
