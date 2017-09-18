@@ -16,3 +16,4 @@ script:
   - make test
 after_script:
   - codeclimate-test-reporter
+  - codeclimate-test-reporter --debug
