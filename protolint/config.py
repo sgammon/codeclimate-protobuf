@@ -9,6 +9,9 @@
 
 import sys
 import json
+import pprint
+
+from . import output
 
 
 class LinterConfig(object):
@@ -35,6 +38,8 @@ class LinterConfig(object):
     try:
       with open(filepath, 'r') as fhandle:
         self.__config = json.load(fhandle)
+
+        output.say("Parsed config: \n" + pprint.pformat(self.__config, indent=2))
 
     except IOError as e:
       print("Encountered IOError while reading config file: %s" % e)
@@ -77,6 +82,8 @@ class LinterConfig(object):
     """ Return paths to include from config.
         :returns: Set of paths to include, or empty set. """
 
+    if 'protopaths' in self.__config.get('config', {}):
+      return self.__config['config']['protopaths']
     return self.__config.get('include_paths', frozenset())
 
   @property

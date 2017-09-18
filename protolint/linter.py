@@ -159,9 +159,12 @@ class Linter(object):
 
         if __debug__:
           after = len(protofiles)
-          output.say('Found %s protos:' % str(after - before))
-          for proto_file in protofiles:
-            output.say('- %s' % proto_file)
+          if after == 0:
+            output.say('Found no protos.')
+          else:
+            output.say('Found %s protos:' % str(after - before))
+            for proto_file in protofiles:
+              output.say('- %s' % proto_file)
 
     base.extend(prefixes)
     base.extend(protofiles)
