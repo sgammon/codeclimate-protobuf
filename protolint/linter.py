@@ -521,6 +521,10 @@ class Issue(object):
           "begin": {
             "line": self.__protoline,
             "column": self.__protocolumn
+          },
+          "end": {
+            "line": self.__protoline,
+            "column": self.__protocolumn
           }
         }
       }
