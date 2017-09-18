@@ -12,8 +12,8 @@ BIN ?= $(ENV)/bin/
 BUILD_TARGETS ?= build build_py build_scripts
 RELEASE_TARGETS ?= sdist bdist bdist_dumb
 
-DOCKER_TAG ?= latest
-DOCKER_BUILD_ARGS ?= --rm --pull --tag
+export DOCKER_TAG ?= latest
+export DOCKER_BUILD_ARGS ?= --rm --pull --tag
 
 TARGET ?= build
 DIST ?= dist
