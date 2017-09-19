@@ -3,6 +3,7 @@
 ## support for `protobuf` in CodeClimate
 
 - Latest Release: `v1.1.2`
+- `protoc` Version: `v3.4.1`
 
 This tool wraps `protoc-gen-lint` to generate improvement suggestions for your `.proto`s. It then outputs those items in CodeClimate's JSON format, so it can be used as a [CodeClimate Engine](http://blog.codeclimate.com/blog/2015/07/07/build-your-own-codeclimate-engine/).
 
