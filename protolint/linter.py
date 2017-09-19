@@ -210,7 +210,7 @@ class Linter(object):
         :returns: `True` if `path` should be excluded, due to matching `exclude_path`. """
 
     # simple prefix match
-    if not path.startswith(exclude_path):
+    if not path.startswith(exclude_path) and not path.replace(self.workspace, "").startswith(exclude_path):
       # regex match maybe?
       try:
         regex = self.__compile_regex(exclude_path)
@@ -384,11 +384,6 @@ class Linter(object):
           if resolved_error:
             context = self.__resolve_context(resolved_error, error_message)
 
-            error_positional = (
-              raw_issue,
-              resolved_error,
-              error_message)
-
             error_context = {
               'protocontext': context}
 
@@ -400,17 +395,15 @@ class Linter(object):
                   # it's a line number
                   error_file, error_line = tuple(map(lambda x: x.strip(), error_file_split))
                   error_context.update({
-                    "protofile": error_file,
                     "protoline": int(error_line)})
                 elif len(error_file_split) == 3:
                   # it's a line number and a column number
                   error_file, error_line, error_column = tuple(map(lambda x: x.strip(), error_file_split))
                   error_context.update({
-                    "protofile": error_file,
                     "protoline": int(error_line),
                     "protocolumn": int(error_column)})
 
-            yield Error(self, *error_positional, **error_context)
+            yield Error(self, raw_issue, resolved_error, error_message, error_file, **error_context)
             continue
 
         # not an error
@@ -497,7 +490,7 @@ class Linter(object):
     """ Returns the workspace being scanned.
         :returns: Current workspace. """
 
-    return self.__config.workspace
+    return self.config.workspace
 
   def make_path_for_protofile(self, protofile):
 
@@ -552,7 +545,7 @@ class BaseIssue(object):
                raw,
                type,
                message,
-               protofile=None,
+               protofile,
                protoline=None,
                protocolumn=None,
                protocontext=None):
@@ -571,8 +564,8 @@ class BaseIssue(object):
     self.type = type
     self.raw = raw
     self.file = protofile
-    self.line = protoline
-    self.column = protocolumn
+    self.line = protoline or 0
+    self.column = protocolumn or 0
     self.context = protocontext
     self.message = Linter.Message[type] % self.render_context()
 
@@ -634,6 +627,8 @@ class BaseIssue(object):
 
         :returns: Exported and serialized version of this issue. """
 
+    if self.type == Linter.Errors.fileNotFound:
+      return
     return self.serialize(self.export())
 
 

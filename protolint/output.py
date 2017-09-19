@@ -64,11 +64,12 @@ def critical(*arguments):
     logger.critical(" ".join(map(unicode, arguments)))
 
 
-def issue(detected):
+def issue(detected):  # pragma: no cover
 
   """ Output a CodeClimate-formatted JSON issue to `stdout`.
 
     :param detected: Detected `linter.Issue` object to format. """
 
-  if not __debug__:  # pragma: no cover
-    print >> sys.stdout, detected()
+  value = detected()
+  if value:
+    print >> sys.stdout, value
