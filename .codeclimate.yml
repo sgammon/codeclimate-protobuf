@@ -1,15 +1,15 @@
 engines:
   fixme:
-    enabled: true
+    enabled: false
   duplication:
-    enabled: true
+    enabled: false
     config:
       languages:
       - python
   git-legal:
-    enabled: true
+    enabled: false
   gnu-complexity:
-    enabled: true
+    enabled: false
   pep8:
     enabled: true
     checks:
