@@ -263,6 +263,10 @@ class Linter(object):
         if len(protofile_batch) > 0:
           protofiles.extend(protofile_batch)
 
+    if len(protofiles) == 0:
+      output.say("No files to analyze. Exiting.")
+      sys.exit(0)
+
     base.extend(prefixes)
     base.extend(protofiles)
     self.__protofiles = frozenset(protofiles)
