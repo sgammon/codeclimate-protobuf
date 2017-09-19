@@ -32,17 +32,18 @@ class Linter(object):
     enumValueCase = 4  # 'Use CAPITALS_WITH_UNDERSCORES for enum value names.'
     serviceCase = 5  # 'Use CamelCase (with an initial capital) for service names.'
     rpcMethodCase = 6  # 'Use CamelCase (with an initial capital) for RPC method names.'
+    syntaxUnspecified = 7  # '[libprotobuf WARNING google/protobuf/compiler/parser.cc:546] No syntax specified for the proto file: exchange.proto.
 
   class Errors(Enum):
 
     """ Enumerated errors from the compiler. """
 
-    fileNotFound = 7  # 'base/TestMessage.proto: File not found.'
-    importUnresolved = 8  # 'invalid_import/sample/Sample.proto: Import "base/TestMessage.proto" was not found or had errors.'
-    notDefined = 9  # 'invalid_import/sample/Sample.proto:13:3: "testMessage" is not defined.'
-    missingFieldNumber = 10  # 'set2/TestMessage2Proto2.proto:10:37: Missing field number.'
-    unexpectedToken = 11  # 'TotallyBorked.proto:9:3: Expected ";".'
-    unexpectedEnd = 12  # 'TotallyBorked.proto:10:1: Reached end of input in message definition (missing '}').'
+    fileNotFound = 8  # 'base/TestMessage.proto: File not found.'
+    importUnresolved = 9  # 'invalid_import/sample/Sample.proto: Import "base/TestMessage.proto" was not found or had errors.'
+    notDefined = 10  # 'invalid_import/sample/Sample.proto:13:3: "testMessage" is not defined.'
+    missingFieldNumber = 11  # 'set2/TestMessage2Proto2.proto:10:37: Missing field number.'
+    unexpectedToken = 12  # 'TotallyBorked.proto:9:3: Expected ";".'
+    unexpectedEnd = 13  # 'TotallyBorked.proto:10:1: Reached end of input in message definition (missing '}').'
 
   Names = {
     # -- Warnings
@@ -52,6 +53,7 @@ class Linter(object):
     Warnings.fieldCase: "Style/Field Name Case",
     Warnings.enumValueCase: "Style/Enum Value Case",
     Warnings.rpcMethodCase: "Style/RPC Method Case",
+    Warnings.syntaxUnspecified: "Bug Risk/Syntax Unspecified",
 
     # -- Errors
     Errors.fileNotFound: "Bug Risk/File Not Found",
@@ -67,9 +69,10 @@ class Linter(object):
     Warnings.messageCase: "major",
     Warnings.enumTypeCase: "major",
     Warnings.serviceCase: "major",
-    Warnings.fieldCase: "minor",
-    Warnings.enumValueCase: "minor",
-    Warnings.rpcMethodCase: "minor",
+    Warnings.fieldCase: "major",
+    Warnings.enumValueCase: "major",
+    Warnings.rpcMethodCase: "major",
+    Warnings.syntaxUnspecified: "minor",
 
     # -- Errors
     Errors.fileNotFound: "critical",
@@ -88,19 +91,20 @@ class Linter(object):
 
   Remediation = {
     # -- Warnings
-    Warnings.messageCase: 50000,
-    Warnings.enumTypeCase: 50000,
-    Warnings.serviceCase: 50000,
-    Warnings.fieldCase: 50000,
-    Warnings.enumValueCase: 50000,
-    Warnings.rpcMethodCase: 50000,
+    Warnings.messageCase: 70000,
+    Warnings.enumTypeCase: 70000,
+    Warnings.serviceCase: 70000,
+    Warnings.fieldCase: 70000,
+    Warnings.enumValueCase: 70000,
+    Warnings.rpcMethodCase: 70000,
+    Warnings.syntaxUnspecified: 50000,
 
     # -- Errors
-    Errors.fileNotFound: 70000,
-    Errors.importUnresolved: 70000,
-    Errors.notDefined: 70000,
-    Errors.missingFieldNumber: 50000,
-    Errors.unexpectedToken: 50000,
+    Errors.fileNotFound: 90000,
+    Errors.importUnresolved: 90000,
+    Errors.notDefined: 90000,
+    Errors.missingFieldNumber: 60000,
+    Errors.unexpectedToken: 60000,
     Errors.unexpectedEnd: 50000
   }
 
@@ -112,6 +116,7 @@ class Linter(object):
     Warnings.fieldCase: ["Compatibility", "Style"],
     Warnings.enumValueCase: ["Compatibility", "Style"],
     Warnings.rpcMethodCase: ["Compatibility", "Style"],
+    Warnings.syntaxUnspecified: ["Compatibility", "Style", "Bug Risk"],
 
     # -- Errors
     Errors.fileNotFound: ["Bug Risk"],
@@ -130,6 +135,7 @@ class Linter(object):
     Warnings.fieldCase: "Use CAPITALS_WITH_UNDERSCORES for enum value names.",
     Warnings.enumValueCase: "Use CamelCase (with an initial capital) for service names.",
     Warnings.rpcMethodCase: "Use CamelCase (with an initial capital) for RPC method names.",
+    Warnings.syntaxUnspecified: "No syntax specified for the proto file: %(file)s. Please use 'syntax = \"proto2\";' or 'syntax = \"proto3\";' to specify a syntax version.",
 
     # -- Errors
     Errors.fileNotFound: "File not found: %(file)s.",
@@ -374,7 +380,7 @@ class Linter(object):
       # @TODO(sgammon): all of this parsing code needs cleanup work
       issue_split = raw_issue.split(' - ')
 
-      if not len(issue_split) == 2:
+      if not len(issue_split) == 2 and not ('libprotobuf' in raw_issue):
         # it could be an error from the compiler
         compiler_split = raw_issue.split(': ')
         if len(compiler_split) == 2:
@@ -410,28 +416,61 @@ class Linter(object):
         raise NotImplementedError("No way to handle output: '%s'" % raw_issue)
 
       else:
-        # it's output from the linter
-        issue_context_raw, issue_message = tuple(issue_split)
+        # see if libprotobuf is complaining
+        if 'libprotobuf' in raw_issue:
+          lpsplit = raw_issue.split(']')
+          if len(lpsplit) == 2:
+            lpprefix, lpmessage = map(lambda x: x.strip(), tuple(raw_issue))
 
-        # parse issue context
-        issue_context_split = issue_context_raw.split(' ')
-        issue_file_line_context, further_context = issue_context_split[0], ' '.join(issue_context_split[1:]).strip().replace('\'', '')
+            lp_protofile = None
+            if '.proto' in lpmessage:
+              # there is a protofile. find it
+              lpblock_split = lpblock[1].split(" ")
+              for lp_subblock in lpblock_split:
+                if '.proto' in lp_subblock:
+                  # we found the protofile
+                  if lp_subblock.endswith("."):
+                    lp_protofile = lp_subblock[:-1]
+                  else:
+                    lp_protofile = lp_subblock
+                  break
 
-        # parse file/line context
-        issue_file_line_context_split = issue_file_line_context.split('.proto')
-        issue_file_name = '.'.join((issue_file_line_context_split[0], 'proto'))
-        issue_line_number = issue_file_line_context.split(':')[1]
-        issue_column_number = issue_file_line_context.split(':')[2]
+            if lp_protofile is None:
+              raise ValueError("unable to resolve libprotobuf protofile: \"%s\"" % raw_issue)
 
-        yield Issue(
-          self,
-          raw=raw_issue,
-          type=self.__resolve_warning(issue_message),
-          message=issue_message,
-          protofile=issue_file_name,
-          protoline=int(issue_line_number.replace(':', '').strip()),
-          protocolumn=int(issue_column_number.replace(':', '').strip()),
-          protocontext=further_context)
+            yield Issue(
+              self,
+              raw=raw_issue,
+              type=self.__resolve_warning(lpmessage),
+              message=lpmessage,
+              protofile=lp_protofile,
+              protoline=1,
+              protocolumn=1,
+              protocontext=None)
+
+        else:
+          # it's output from the linter
+          issue_context_raw, issue_message = tuple(issue_split)
+
+          # parse issue context
+          issue_context_split = issue_context_raw.split(' ')
+          issue_file_line_context, further_context = issue_context_split[0], ' '.join(issue_context_split[1:]).strip().replace('\'', '')
+
+          # parse file/line context
+          issue_file_line_context_split = issue_file_line_context.split('.proto')
+          issue_file_name = '.'.join((issue_file_line_context_split[0], 'proto'))
+          issue_line_number = issue_file_line_context.split(':')[1]
+          issue_column_number = issue_file_line_context.split(':')[2]
+
+          yield Issue(
+            self,
+            raw=raw_issue,
+            type=self.__resolve_warning(issue_message),
+            message=issue_message,
+            protofile=issue_file_name,
+            protoline=int(issue_line_number.replace(':', '').strip()),
+            protocolumn=int(issue_column_number.replace(':', '').strip()),
+            protocontext=further_context)
 
   def __execute(self):
 
