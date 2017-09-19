@@ -141,15 +141,9 @@ class Linter(object):
   }
 
   ## -- Internals -- ##
-  __config = None  # config for the linter, parsed from JSON
-  __raw_output = None  # raw output from `protoc-gen-lint`
-  __issues = None  # issues detected during the lint process
-  __exit = 0  # exit code to use when done
-  __arguments = None  # arguments from the CLI
-  __protofiles = None  # frozenset of files found for scanning
-  __regexes = None  # regex compiler cache
-
-  # @TODO(sgammon): add __slots__
+  __slots__ = (
+    'config', 'raw_output', 'issues', 'exit',
+    'arguments', 'protofiles', 'regexes')
 
   def __init__(self, config, arguments):
 
@@ -157,10 +151,10 @@ class Linter(object):
 
         :param config: `config.LinterConfig` object. """
 
-    self.__config = config
-    self.__issues = []
-    self.__arguments = arguments
-    self.__regexes = {}
+    self.config = config
+    self.issues = []
+    self.arguments = arguments
+    self.regexes = {}
 
   def __make_abspath(self, path):
 
@@ -200,10 +194,10 @@ class Linter(object):
         :param formula: Regex formula.
         :returns: Compiled regex, which can be cached. """
 
-    if formula in self.__regexes:
-      return self.__regexes[formula]
+    if formula in self.regexes:
+      return self.regexes[formula]
     regex = re.compile(formula)
-    self.__regexes[formula] = regex
+    self.regexes[formula] = regex
     return regex
 
   def __exclude_match(self, path, exclude_path):
@@ -281,7 +275,7 @@ class Linter(object):
 
     base.extend(prefixes)
     base.extend(protofiles)
-    self.__protofiles = frozenset(protofiles)
+    self.protofiles = frozenset(protofiles)
     base.append('--lint_out=/.linter')
     return base
 
@@ -517,57 +511,6 @@ class Linter(object):
       return "/".join(resolved_path.split("/")[1:])
     return resolved_path
 
-  ## -- Properties -- ##
-  @property
-  def config(self):
-
-    """ Return the active config for this linter.
-        :returns: `config.LinterConfig` for this linter. """
-
-    return self.__config
-
-  @property
-  def protofiles(self):
-
-    """ Return the files being scanned by the linter.
-        :returns: Files being scanned. """
-
-    return self.__protofiles
-
-  @property
-  def workspace(self):
-
-    """ Returns the workspace being scanned.
-        :returns: Current workspace. """
-
-    return self.__config.workspace
-
-  @property
-  def raw_output(self):
-
-    """ Returns the raw output from the linter tool.
-        :returns: Raw, unparsed output. """
-
-    return self.__raw_output
-
-  @property
-  def exit_code(self):
-
-    """ Returns the exit code to use when exiting.
-        :returns: Unix-like exit code. Defaults to `0`. """
-
-    for issue in self.__issues:
-      yield output.issue(issue)
-
-  @property
-  def issues(self):
-
-    """ Yields issues detected during the linter process.
-        :returns: Yields formatted issue lines one at a time. """
-
-    for issue in self.__issues:
-      yield output.issue(issue)
-
   ## -- CLI Interface -- ##
   def __call__(self):
 
@@ -578,10 +521,10 @@ class Linter(object):
 
     # execute protoc with protoc-gen-lint, then parse the output
     for issue in self.__parse(self.__execute()):
-      self.__issues.append(issue)
+      self.issues.append(issue)
       yield issue
 
-      if hasattr(self.__arguments, 'verbose') and self.__arguments.verbose:
+      if hasattr(self.arguments, 'verbose') and self.arguments.verbose:
         output.say('Reporting issue: %s' % issue)
 
     raise StopIteration()
@@ -592,14 +535,9 @@ class BaseIssue(object):
   """ Base issue object, shared by `Issue` and `Error` for common functionality. """
 
   ## -- Internals -- ##
-  __raw = None  # raw output for this issue
-  __type = None  # parsed type of this issue
-  __linter = None  # linter that created this
-  __message = None  # message that was emitted
-  __protofile = None  # protobuf file that caused the issue
-  __protoline = None  # protobuf line in file that caused the issue
-  __protocolumn = None  # protobuf column in line that caused the issue
-  __protocontext = None  # protobuf extra context related to issue
+  __slots__ = (
+    'raw', 'type', 'linter', 'message',
+    'file', 'line', 'column', 'context')
 
   def __init__(self,
                linter,
@@ -621,79 +559,14 @@ class BaseIssue(object):
         :param protofile: Protobuf file that caused the issue.
         :param protoline: Line in the protobuf file that caused the issue. """
 
-    self.__linter = linter
-    self.__type = type
-    self.__raw = raw
-    self.__protofile = protofile
-    self.__protoline = protoline
-    self.__protocolumn = protocolumn
-    self.__protocontext = protocontext
-    self.__message = Linter.Message[type] % self.render_context()
-
-  ## -- Properties -- ##
-  @property
-  def raw(self):
-
-    """ Return the raw, unparsed line emitted by `protoc-gen-lint` for this issue.
-        :returns: Raw output line. """
-
-    return self.__raw
-
-  @property
-  def type(self):
-
-    """ Return the type of this issue.
-        :returns: `linter.Linter.Warnings` type for this issue. """
-
-    return self.__type
-
-  @property
-  def linter(self):
-
-    """ Return the linter that created this issue.
-        :returns: `linter.Linter`. """
-
-    return self.__linter
-
-  @property
-  def message(self):
-
-    """ Return the message emitted by `protoc-gen-lint` for this issue.
-        :returns: Parsed message. """
-
-    return self.__message
-
-  @property
-  def file(self):
-
-    """ Return the protobuf file that caused this issue.
-        :returns: Protobuf filepath and name, as returned by `protoc-gen-lint`. """
-
-    return self.__protofile
-
-  @property
-  def line(self):
-
-    """ Return the line in the protobuf file that caused this issue.
-        :returns: Protobuf line as parsed from the filepath returned by `protoc-gen-lint`. """
-
-    return self.__protoline
-
-  @property
-  def column(self):
-
-    """ Return the column in the protobuf line that caused this issue.
-        :returns: Protobuf column as parsed from the line returned by `protoc-gen-lint`. """
-
-    return self.__protocolumn
-
-  @property
-  def context(self):
-
-    """ Return the extra context offered by `protoc-gen-lint`.
-        :returns: Context value as parsed from the line returned by `protoc-gen-lint`. """
-
-    return self.__protocontext
+    self.linter = linter
+    self.type = type
+    self.raw = raw
+    self.file = protofile
+    self.line = protoline
+    self.column = protocolumn
+    self.context = protocontext
+    self.message = Linter.Message[type] % self.render_context()
 
   ## -- Methods -- ##
   def render_context(self):
@@ -707,7 +580,6 @@ class BaseIssue(object):
       "column": self.column,
       "context": self.context,
       "type": self.type,
-      "message": self.message,
       "raw": self.raw
     }
 
@@ -724,7 +596,7 @@ class BaseIssue(object):
         that CodeClimate is capable of reading. """
 
     output.say('Writing issue "%s"...' % repr(self))
-    Linter.SeverityHandler[Linter.Severity[self.type]]("[%s]: %s" % (self.__type.name, self.__message))
+    Linter.SeverityHandler[Linter.Severity[self.type]]("[%s]: %s" % (self.type.name, self.message))
     output.issue(self)
 
   def format_location(self):
