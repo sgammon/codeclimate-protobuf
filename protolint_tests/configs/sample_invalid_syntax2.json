@@ -1,0 +1,8 @@
+{
+  "include_paths": [
+    "protos/invalid_syntax2"
+  ],
+  "config": {
+    "example": "hello"
+  }
+}

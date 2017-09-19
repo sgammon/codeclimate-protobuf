@@ -50,3 +50,32 @@ class RunnerTests(unittest.TestCase):
       sys.argv = ['', 'protolint_tests/configs/sample_with_exclusion.json', 'protolint_tests/']
       run_tool()
     restore_streams()
+
+  def test_run_linter_empty(self):
+
+    """ test a full run of the linter with an empty project """
+
+    switchout_streams()
+    with self.assertRaises(SystemExit) as exit:
+      from protolint.__main__ import run_tool
+      sys.argv = ['', 'protolint_tests/configs/sample_empty.json', 'protolint_tests/']
+      run_tool()
+    restore_streams()
+
+  def test_run_linter_invalid_syntax(self):
+
+    """ test a full run of the linter with exclusions configured """
+
+    switchout_streams()
+    with self.assertRaises(SystemExit) as exit:
+      from protolint.__main__ import run_tool
+      sys.argv = ['', 'protolint_tests/configs/sample_invalid_syntax.json', 'protolint_tests/']
+      run_tool()
+    restore_streams()
+
+    switchout_streams()
+    with self.assertRaises(SystemExit) as exit:
+      from protolint.__main__ import run_tool
+      sys.argv = ['', 'protolint_tests/configs/sample_invalid_syntax2.json', 'protolint_tests/']
+      run_tool()
+    restore_streams()
