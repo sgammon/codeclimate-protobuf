@@ -309,6 +309,8 @@ class Linter(object):
       return Linter.Warnings.serviceCase
     elif 'method names' in issue_msg:
       return Linter.Warnings.rpcMethodCase
+    elif 'no syntax specified' in issue_msg:
+      return Linter.Warnings.syntaxUnspecified
     else:
       raise ValueError('cannot parse issue line for type: %s' % issue_msg)
 
@@ -380,7 +382,7 @@ class Linter(object):
       # @TODO(sgammon): all of this parsing code needs cleanup work
       issue_split = raw_issue.split(' - ')
 
-      if not len(issue_split) == 2 and not ('libprotobuf' in raw_issue):
+      if not len(issue_split) == 2 or ('libprotobuf' in raw_issue):
         # it could be an error from the compiler
         compiler_split = raw_issue.split(': ')
         if len(compiler_split) == 2:
@@ -412,20 +414,16 @@ class Linter(object):
             yield Error(self, raw_issue, resolved_error, error_message, error_file, **error_context)
             continue
 
-        # not an error
-        raise NotImplementedError("No way to handle output: '%s'" % raw_issue)
-
-      else:
         # see if libprotobuf is complaining
         if 'libprotobuf' in raw_issue:
           lpsplit = raw_issue.split(']')
           if len(lpsplit) == 2:
-            lpprefix, lpmessage = map(lambda x: x.strip(), tuple(raw_issue))
+            lpprefix, lpmessage = tuple(map(lambda x: x.strip(), lpsplit))
 
             lp_protofile = None
             if '.proto' in lpmessage:
               # there is a protofile. find it
-              lpblock_split = lpblock[1].split(" ")
+              lpblock_split = lpmessage.split(" ")
               for lp_subblock in lpblock_split:
                 if '.proto' in lp_subblock:
                   # we found the protofile
@@ -441,36 +439,41 @@ class Linter(object):
             yield Issue(
               self,
               raw=raw_issue,
-              type=self.__resolve_warning(lpmessage),
+              type=self.__resolve_warning(lpmessage.lower()),
               message=lpmessage,
               protofile=lp_protofile,
               protoline=1,
               protocolumn=1,
               protocontext=None)
 
-        else:
-          # it's output from the linter
-          issue_context_raw, issue_message = tuple(issue_split)
+            continue
 
-          # parse issue context
-          issue_context_split = issue_context_raw.split(' ')
-          issue_file_line_context, further_context = issue_context_split[0], ' '.join(issue_context_split[1:]).strip().replace('\'', '')
+        # not an error
+        raise NotImplementedError("No way to handle output: '%s'" % raw_issue)
 
-          # parse file/line context
-          issue_file_line_context_split = issue_file_line_context.split('.proto')
-          issue_file_name = '.'.join((issue_file_line_context_split[0], 'proto'))
-          issue_line_number = issue_file_line_context.split(':')[1]
-          issue_column_number = issue_file_line_context.split(':')[2]
+      else:
+        # it's output from the linter
+        issue_context_raw, issue_message = tuple(issue_split)
 
-          yield Issue(
-            self,
-            raw=raw_issue,
-            type=self.__resolve_warning(issue_message),
-            message=issue_message,
-            protofile=issue_file_name,
-            protoline=int(issue_line_number.replace(':', '').strip()),
-            protocolumn=int(issue_column_number.replace(':', '').strip()),
-            protocontext=further_context)
+        # parse issue context
+        issue_context_split = issue_context_raw.split(' ')
+        issue_file_line_context, further_context = issue_context_split[0], ' '.join(issue_context_split[1:]).strip().replace('\'', '')
+
+        # parse file/line context
+        issue_file_line_context_split = issue_file_line_context.split('.proto')
+        issue_file_name = '.'.join((issue_file_line_context_split[0], 'proto'))
+        issue_line_number = issue_file_line_context.split(':')[1]
+        issue_column_number = issue_file_line_context.split(':')[2]
+
+        yield Issue(
+          self,
+          raw=raw_issue,
+          type=self.__resolve_warning(issue_message),
+          message=issue_message,
+          protofile=issue_file_name,
+          protoline=int(issue_line_number.replace(':', '').strip()),
+          protocolumn=int(issue_column_number.replace(':', '').strip()),
+          protocontext=further_context)
 
   def __execute(self):
 
@@ -516,8 +519,9 @@ class Linter(object):
       output.info('No issues found.')
 
     if (len(issues_to_output) != issue_count_from_plugin) and __debug__:
-      output.warn('Number of reported issues from plugin (%s) does not match number of issues parsed (%s).' % (
-        issue_count_from_plugin, len(issues_to_output)))
+      if not any(filter(lambda line: 'libprotobuf WARNING' in line, e.output)):
+        output.warn('Number of reported issues from plugin (%s) does not match number of issues parsed (%s).' % (
+                      issue_count_from_plugin, len(issues_to_output)))
     else:
       output.info('Reporting %s issues.' % len(issues_to_output))
 
