@@ -11,6 +11,7 @@ ENV ?= .env
 BIN ?= $(ENV)/bin/
 BUILD_TARGETS ?= build build_py build_scripts
 RELEASE_TARGETS ?= sdist bdist bdist_dumb
+TESTFLAGS ?=
 
 export DOCKER_TAG ?= latest
 export DOCKER_BUILD_ARGS ?= --rm --pull --tag
@@ -63,7 +64,7 @@ $(TARGET): environment dependencies
 test:
 	$(call say,"Running 'protolint' testsuite...")
 	@mkdir -p $(ENV)/coverage $(ENV)/tests
-	@$(BIN)/nosetests --with-coverage --cover-erase --cover-package=protolint --with-xunit --xunit-file=$(ENV)/tests/tests.xml --cover-xml --cover-xml-file=$(ENV)/coverage/coverage.xml
+	@$(BIN)/nosetests --with-coverage --cover-erase --cover-package=protolint --with-xunit --xunit-file=$(ENV)/tests/tests.xml --cover-xml --cover-xml-file=$(ENV)/coverage/coverage.xml $(TESTFLAGS)
 
 release: $(DIST)
 $(DIST):
