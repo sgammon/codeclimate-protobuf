@@ -7,6 +7,21 @@
 This tool wraps `protoc-gen-lint` to generate improvement suggestions for your `.proto`s. It then outputs those items in CodeClimate's JSON format, so it can be used as a [CodeClimate Engine](http://blog.codeclimate.com/blog/2015/07/07/build-your-own-codeclimate-engine/).
 
 
+### Configuration
+
+There is a custom configuration entry - `protopaths` - that lets you specify `-I`/`--protos_path=` flags to the `protoc` compiler. If your `.proto` files use `import "...";` directives, you probably need this. Here's how you do it:
+
+```yaml
+engines:
+  protolint:
+    enabled: true
+    config:
+      protopaths:
+        - sources/models/pathone
+        - sources/models/pathtwo
+```
+
+
 ### How it works
 
 It's a Python module called `protolint`, with a module-level run file (`__main__.py`). It can be executed via any of the following methods:
