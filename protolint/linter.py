@@ -41,6 +41,8 @@ class Linter(object):
     importUnresolved = 8  # 'invalid_import/sample/Sample.proto: Import "base/TestMessage.proto" was not found or had errors.'
     notDefined = 9  # 'invalid_import/sample/Sample.proto:13:3: "testMessage" is not defined.'
     missingFieldNumber = 10  # 'set2/TestMessage2Proto2.proto:10:37: Missing field number.'
+    unexpectedToken = 11  # 'TotallyBorked.proto:9:3: Expected ";".'
+    unexpectedEnd = 12  # 'TotallyBorked.proto:10:1: Reached end of input in message definition (missing '}').'
 
   Names = {
     # -- Warnings
@@ -55,7 +57,9 @@ class Linter(object):
     Errors.fileNotFound: "Bug Risk/File Not Found",
     Errors.importUnresolved: "Bug Risk/Import Unresolved",
     Errors.notDefined: "Bug Risk/Symbol Undefined",
-    Errors.missingFieldNumber: "Bug Risk/Missing Field Number"
+    Errors.missingFieldNumber: "Bug Risk/Missing Field Number",
+    Errors.unexpectedToken: "Bug Risk/Unexpected Token",
+    Errors.unexpectedEnd: "Bug Risk/Unexpected End of Input"
   }
 
   Severity = {
@@ -71,7 +75,9 @@ class Linter(object):
     Errors.fileNotFound: "critical",
     Errors.importUnresolved: "critical",
     Errors.notDefined: "critical",
-    Errors.missingFieldNumber: "critical"
+    Errors.missingFieldNumber: "critical",
+    Errors.unexpectedToken: "critical",
+    Errors.unexpectedEnd: "critical"
   }
 
   SeverityHandler = {
@@ -93,7 +99,9 @@ class Linter(object):
     Errors.fileNotFound: 70000,
     Errors.importUnresolved: 70000,
     Errors.notDefined: 70000,
-    Errors.missingFieldNumber: 50000
+    Errors.missingFieldNumber: 50000,
+    Errors.unexpectedToken: 50000,
+    Errors.unexpectedEnd: 50000
   }
 
   Categories = {
@@ -109,7 +117,9 @@ class Linter(object):
     Errors.fileNotFound: ["Bug Risk"],
     Errors.importUnresolved: ["Bug Risk"],
     Errors.notDefined: ["Bug Risk"],
-    Errors.missingFieldNumber: ["Bug Risk"]
+    Errors.missingFieldNumber: ["Bug Risk"],
+    Errors.unexpectedToken: ["Bug Risk"],
+    Errors.unexpectedEnd: ["Bug Risk"]
   }
 
   Message = {
@@ -125,7 +135,9 @@ class Linter(object):
     Errors.fileNotFound: "File not found: %(file)s.",
     Errors.importUnresolved: "Import was not found or had errors: %(context)s.",
     Errors.notDefined: "Symbol \"%(context)s\" was not defined.",
-    Errors.missingFieldNumber: "Missing field number"
+    Errors.missingFieldNumber: "Missing field number",
+    Errors.unexpectedToken: "Expected token: \"%(context)s\".",
+    Errors.unexpectedEnd: "Unexpected end of input, missing '}'"
   }
 
   ## -- Internals -- ##
@@ -319,6 +331,10 @@ class Linter(object):
       return Linter.Errors.notDefined
     elif 'missing field number' in error_msg:
       return Linter.Errors.missingFieldNumber
+    elif 'expected' in error_msg:
+      return Linter.Errors.unexpectedToken
+    elif 'reached end of input' in error_msg:
+      return Linter.Errors.unexpectedEnd
     return None
 
   def __resolve_context(self, resolved_error, error_message):
@@ -333,6 +349,8 @@ class Linter(object):
     error_sample = error_message.lower().strip()
     if resolved_error == Linter.Errors.fileNotFound:
       return  # context is not supported for file-not-found stuff
+    elif resolved_error == Linter.Errors.unexpectedEnd:
+      return  # no context needed
     elif resolved_error == Linter.Errors.missingFieldNumber:
       return  # compiler provides no context for missing field number errors
     elif resolved_error == Linter.Errors.importUnresolved:
@@ -341,6 +359,11 @@ class Linter(object):
         # it's an import error, the context is in the second position
         return error_split[1]
     elif resolved_error == Linter.Errors.notDefined:
+      error_split = error_message.split("\"")
+      if len(error_split) > 2:
+        # return the symbol that failed
+        return error_split[1]
+    elif resolved_error == Linter.Errors.unexpectedToken:
       error_split = error_message.split("\"")
       if len(error_split) > 2:
         # return the symbol that failed

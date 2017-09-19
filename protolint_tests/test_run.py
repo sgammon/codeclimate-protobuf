@@ -62,9 +62,9 @@ class RunnerTests(unittest.TestCase):
       run_tool()
     restore_streams()
 
-  def test_run_linter_invalid_syntax(self):
+  def test_run_linter_invalid_syntax_unexpected_token(self):
 
-    """ test a full run of the linter with exclusions configured """
+    """ test a full run of the linter with an unexpected token syntax error """
 
     switchout_streams()
     with self.assertRaises(SystemExit) as exit:
@@ -72,6 +72,10 @@ class RunnerTests(unittest.TestCase):
       sys.argv = ['', 'protolint_tests/configs/sample_invalid_syntax.json', 'protolint_tests/']
       run_tool()
     restore_streams()
+
+  def test_run_linter_invalid_syntax_missing_close_bracket(self):
+
+    """ test a full run of the linter with a missing close bracket """
 
     switchout_streams()
     with self.assertRaises(SystemExit) as exit:
