@@ -1,0 +1,10 @@
+
+syntax = "proto3";
+
+package base;
+
+
+message testMessageProto {
+  string test = 1;
+  int32 test2 = 2;
+}

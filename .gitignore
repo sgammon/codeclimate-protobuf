@@ -6,3 +6,5 @@ dist/
 *.pyc
 *.pyo
 .coverage
+protoc-gen-lint
+base/protoc-gen-lint

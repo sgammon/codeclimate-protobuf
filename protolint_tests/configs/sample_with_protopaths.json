@@ -1,0 +1,10 @@
+{
+  "include_paths": [
+    "protos/"
+  ],
+  "config": {
+    "protopaths": [
+      "protos/set1"
+    ]
+  }
+}

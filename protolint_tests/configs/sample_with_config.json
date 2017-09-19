@@ -2,5 +2,7 @@
   "include_paths": [
     "protos/set1"
   ],
-  "example": "hello"
+  "config": {
+    "example": "hello"
+  }
 }

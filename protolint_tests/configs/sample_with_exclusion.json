@@ -1,0 +1,11 @@
+{
+  "include_paths": [
+    "protos/"
+  ],
+  "exclude_paths": [
+    "protos/set2",
+    "protos/invalid_import",
+    "protos/invalid_syntax",
+    "protos/valid_import"
+  ]
+}

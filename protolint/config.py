@@ -53,14 +53,14 @@ class LinterConfig(object):
 
     """ Get a config item. """
 
-    return self.__config.get(item, None)
+    return self.__config.get('config', {}).get(item, None)
 
   @property
   def config(self):
 
     """ Return the parsed linter configuration. """
 
-    return self.__config
+    return self.__config.get('config', {})
 
   @property
   def filepath(self):
@@ -79,7 +79,7 @@ class LinterConfig(object):
   @property
   def include_paths(self):
 
-    """ Return paths to include from config.
+    """ Return paths to include from linting.
         :returns: Set of paths to include, or empty set. """
 
     if 'protopaths' in self.__config.get('config', {}):
@@ -87,9 +87,18 @@ class LinterConfig(object):
     return self.__config.get('include_paths', frozenset())
 
   @property
+  def exclude_paths(self):
+
+    """ Return paths to exclude from linting.
+        :returns: Set of paths to exclude, or empty set. """
+
+    return self.__config.get('exclude_paths', frozenset())
+
+  @property
   def config_items(self):
 
     """ Return paths to include from config.
         :returns: Set of paths to include, or empty set. """
 
-    return filter(lambda x: x != 'include_paths', self.__config.keys())
+    return filter(lambda x: x not in frozenset(('include_paths', 'exclude_paths')),
+      self.__config.get('config', {}).keys())
