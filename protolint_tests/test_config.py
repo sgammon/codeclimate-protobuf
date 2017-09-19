@@ -42,8 +42,19 @@ class ConfigTests(unittest.TestCase):
 
     from protolint import config
     lint = config.LinterConfig("protolint_tests/configs/sample.json", "protolint_tests/")
-    self.assertTrue('include_paths' in lint.config, "raw config must have include_paths")
+    self.assertTrue('include_paths' not in lint.config, "raw config must not have include_paths")
     self.assertTrue('protos/set1' in [i for i in lint.include_paths], "raw config must have include_paths with proper entries")
+
+  def test_exclude_paths(self):
+
+    """ construct a `LinterConfig` and make sure exclude paths get loaded """
+
+    from protolint import config
+    lint = config.LinterConfig("protolint_tests/configs/sample_with_exclusion.json", "protolint_tests/")
+    self.assertTrue('include_paths' not in lint.config, "raw config must not have include_paths")
+    self.assertTrue('exclude_paths' not in lint.config, "raw config must not have exclude_paths")
+    self.assertTrue('protos/' in [i for i in lint.include_paths], "raw config must have include_paths with proper entries")
+    self.assertTrue('protos/set2' in [i for i in lint.exclude_paths], "raw config must have exclude_paths with proper entries")
 
   def test_config_items(self):
 
@@ -51,7 +62,7 @@ class ConfigTests(unittest.TestCase):
 
     from protolint import config
     lint = config.LinterConfig("protolint_tests/configs/sample_with_config.json", "protolint_tests/")
-    self.assertTrue('include_paths' in lint.config, "raw config must have include_paths")
+    self.assertTrue('include_paths' not in lint.config, "raw config must not have include_paths")
     self.assertTrue('protos/set1' in [i for i in lint.include_paths], "raw config must have include_paths with proper entries")
     self.assertTrue('example' in [i for i in lint.config_items], "raw config items must expose configured property")
 
@@ -71,6 +82,16 @@ class ConfigTests(unittest.TestCase):
     with self.assertRaises(SystemExit):
       from protolint import config
       lint = config.LinterConfig("protolint_tests/configs/non_existent_config.json", "protolint_tests/")
+    restore_streams()
+
+  def test_config_missing(self):
+
+    """ construct a `LinterConfig` and make sure it works with custom config """
+
+    switchout_streams()
+    from protolint import config
+    lint = config.LinterConfig("protolint_tests/configs/sample_with_protopaths.json", "protolint_tests/")
+    self.assertTrue(lint["protopaths"], "custom config for protopaths must be loaded correctly")
     restore_streams()
 
   def test_config_invalid(self):

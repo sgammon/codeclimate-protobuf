@@ -56,6 +56,14 @@ def error(*arguments):
     logger.error(" ".join(map(unicode, arguments)))
 
 
+def critical(*arguments):
+
+  """ Output a critical message to the log. """
+
+  if __debug__:  # pragma: no cover
+    logger.critical(" ".join(map(unicode, arguments)))
+
+
 def issue(detected):
 
   """ Output a CodeClimate-formatted JSON issue to `stdout`.

@@ -1,6 +1,6 @@
 {
   "include_paths": [
-    "protos/set1"
+    "protos/invalid_syntax"
   ],
   "config": {
     "example": "hello"
