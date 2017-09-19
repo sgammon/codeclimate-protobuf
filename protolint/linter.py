@@ -491,6 +491,14 @@ class Linter(object):
 
     return issues_to_output
 
+  @property
+  def workspace(self):
+
+    """ Returns the workspace being scanned.
+        :returns: Current workspace. """
+
+    return self.__config.workspace
+
   def make_path_for_protofile(self, protofile):
 
     """ Make an absolute link for a protofile.
