@@ -82,7 +82,7 @@ class LinterConfig(object):
 
     if 'protopaths' in self._config.get('config', {}):
       return self._config['config']['protopaths']
-    return self._config.get('include_paths', frozenset())
+    return frozenset(set(self._config.get('include_paths', tuple())).union(set((self.workspace,))))
 
   @property
   def exclude_paths(self):
