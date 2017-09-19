@@ -101,4 +101,4 @@ class LinterConfig(object):
         :returns: Set of paths to include, or empty set. """
 
     return filter(lambda x: x not in frozenset(('include_paths', 'exclude_paths')),
-      self.__config.get('config', {}).keys())
+                      self.__config.get('config', {}).keys())

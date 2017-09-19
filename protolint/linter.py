@@ -358,12 +358,8 @@ class Linter(object):
       if len(error_split) > 2 and ".proto" in error_split[1]:
         # it's an import error, the context is in the second position
         return error_split[1]
-    elif resolved_error == Linter.Errors.notDefined:
-      error_split = error_message.split("\"")
-      if len(error_split) > 2:
-        # return the symbol that failed
-        return error_split[1]
-    elif resolved_error == Linter.Errors.unexpectedToken:
+    elif resolved_error in frozenset((
+      Linter.Errors.unexpectedToken, Linter.Errors.notDefined)):
       error_split = error_message.split("\"")
       if len(error_split) > 2:
         # return the symbol that failed
