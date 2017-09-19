@@ -564,8 +564,8 @@ class BaseIssue(object):
     self.type = type
     self.raw = raw
     self.file = protofile
-    self.line = protoline or 0
-    self.column = protocolumn or 0
+    self.line = protoline or 1
+    self.column = protocolumn or 1
     self.context = protocontext
     self.message = Linter.Message[type] % self.render_context()
 
