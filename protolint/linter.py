@@ -863,12 +863,12 @@ class Error(BaseIssue):
         "path": self.linter.make_path_for_protofile(self.file),
         "positions": {
           "begin": {
-            "line": 0,  # @TODO(sgammon): is this the best way to express a whole file?
-            "column": 0
+            "line": self.line,
+            "column": self.column
           },
           "end": {
-            "line": 0,
-            "column": 0
+            "line": self.line,
+            "column": self.column
           }
         }
       }
