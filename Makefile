@@ -71,7 +71,7 @@ $(DIST):
 	$(call say,"Cutting 'protolint' release...")
 	@python setup.py $(RELEASE_TARGETS)
 	$(call say,"Compressing dependencies...")
-	@tar -czvf dist/dependencies.tar.gz $(ENV)/lib/python2.7/site-packages/*
+	@cd $(ENV)/lib/python2.7/site-packages && tar -czvf ../../../../dist/dependencies.tar.gz ./*
 
 image:
 	$(call say,"Building 'protolint' image...")
