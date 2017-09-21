@@ -46,6 +46,7 @@ class Linter(object):
     unexpectedToken = 13  # 'TotallyBorked.proto:9:3: Expected ";".'
     unexpectedEnd = 14  # 'TotallyBorked.proto:10:1: Reached end of input in message definition (missing '}').'
     duplicateEnumValue = 15  # 'sample/Sample.proto: "sample.two" uses the same enum value as "sample.ONE". If this is intended, set 'option allow_alias = true;' to the enum definition.'
+    firstEnumValueMustBeZero = 16  # 'the first enum value must be zero in proto3.'
 
   Names = {
     # -- Warnings
@@ -65,7 +66,8 @@ class Linter(object):
     Errors.missingFieldNumber: "Bug Risk/Missing Field Number",
     Errors.unexpectedToken: "Bug Risk/Unexpected Token",
     Errors.unexpectedEnd: "Bug Risk/Unexpected End of Input",
-    Errors.duplicateEnumValue: "Bug Risk/Duplicate Enum Value"
+    Errors.duplicateEnumValue: "Bug Risk/Duplicate Enum Value",
+    Errors.firstEnumValueMustBeZero: "Bug Risk/First Enum Value"
   }
 
   Severity = {
@@ -86,7 +88,8 @@ class Linter(object):
     Errors.missingFieldNumber: "critical",
     Errors.unexpectedToken: "critical",
     Errors.unexpectedEnd: "critical",
-    Errors.duplicateEnumValue: "critical"
+    Errors.duplicateEnumValue: "critical",
+    Errors.firstEnumValueMustBeZero: "critical"
   }
 
   SeverityHandler = {
@@ -113,7 +116,8 @@ class Linter(object):
     Errors.missingFieldNumber: 60000,
     Errors.unexpectedToken: 60000,
     Errors.unexpectedEnd: 50000,
-    Errors.duplicateEnumValue: 70000
+    Errors.duplicateEnumValue: 70000,
+    Errors.firstEnumValueMustBeZero: 50000
   }
 
   Categories = {
@@ -134,7 +138,8 @@ class Linter(object):
     Errors.missingFieldNumber: ["Bug Risk"],
     Errors.unexpectedToken: ["Bug Risk"],
     Errors.unexpectedEnd: ["Bug Risk"],
-    Errors.duplicateEnumValue: ["Bug Risk"]
+    Errors.duplicateEnumValue: ["Bug Risk"],
+    Errors.firstEnumValueMustBeZero: ["Bug Risk", "Style"]
   }
 
   Message = {
@@ -155,7 +160,8 @@ class Linter(object):
     Errors.missingFieldNumber: "Missing field number",
     Errors.unexpectedToken: "Expected token: \"%(context)s\".",
     Errors.unexpectedEnd: "Unexpected end of input, missing '}'",
-    Errors.duplicateEnumValue: "%(message)s"
+    Errors.duplicateEnumValue: "%(message)s",
+    Errors.firstEnumValueMustBeZero: "the first enum value must be zero in proto3"
   }
 
   ## -- Internals -- ##
@@ -353,6 +359,8 @@ class Linter(object):
       return Linter.Errors.unexpectedEnd
     elif 'uses the same enum value as' in error_msg:
       return Linter.Errors.duplicateEnumValue
+    elif 'first enum value must be zero' in error_msg:
+      return Linter.Errors.firstEnumValueMustBeZero
     raise NotImplementedError("Error is not implemented: '%s'" % error_msg)
 
   def __resolve_context(self, resolved_error, error_message):
@@ -373,6 +381,8 @@ class Linter(object):
       return  # compiler provides no context for missing field number errors
     elif resolved_error == Linter.Errors.duplicateEnumValue:
       return  # no context for duplicate enum values
+    elif resolved_error == Linter.Errors.firstEnumValueMustBeZero:
+      return # no context since it's self-explanatory
     elif resolved_error == Linter.Errors.importUnresolved:
       error_split = error_message.split("\"")
       if len(error_split) > 2 and ".proto" in error_split[1]:

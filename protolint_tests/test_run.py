@@ -102,6 +102,17 @@ class RunnerTests(unittest.TestCase):
     switchout_streams()
     with self.assertRaises(SystemExit) as exit:
       from protolint.__main__ import run_tool
-      sys.argv = ['', 'protolint_tests/configs/sample_duplicate_enum_number.json', 'protolint_tests/']
+      sys.argv = ['', 'protolint_tests/configs/sample_duplicate_enum_number.json', 'protolint_tests/protos/repeated_enum_number']
+      run_tool()
+    restore_streams()
+
+  def test_run_linter_enum_first_must_be_zero(self):
+
+    """ test a full run of the linter on an enum that starts at 1 """
+
+    switchout_streams()
+    with self.assertRaises(SystemExit) as exit:
+      from protolint.__main__ import run_tool
+      sys.argv = ['', 'protolint_tests/configs/sample_enum_first_must_be_zero.json', 'protolint_tests/protos/enum_first_must_be_zero']
       run_tool()
     restore_streams()
