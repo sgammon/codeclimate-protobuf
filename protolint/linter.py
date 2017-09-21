@@ -391,7 +391,7 @@ class Linter(object):
     elif resolved_error == Linter.Errors.duplicateEnumValue:
       return  # no context for duplicate enum values
     elif resolved_error == Linter.Errors.firstEnumValueMustBeZero:
-      return # no context since it's self-explanatory
+      return  # no context since it's self-explanatory
     elif resolved_error == Linter.Errors.fieldNumberAlreadyUsed:
       return  # context is in the message
     elif resolved_error == Linter.Errors.importUnresolved:
