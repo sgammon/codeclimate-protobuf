@@ -45,6 +45,7 @@ class Linter(object):
     missingFieldNumber = 12  # 'set2/TestMessage2Proto2.proto:10:37: Missing field number.'
     unexpectedToken = 13  # 'TotallyBorked.proto:9:3: Expected ";".'
     unexpectedEnd = 14  # 'TotallyBorked.proto:10:1: Reached end of input in message definition (missing '}').'
+    duplicateEnumValue = 15  # 'sample/Sample.proto: "sample.two" uses the same enum value as "sample.ONE". If this is intended, set 'option allow_alias = true;' to the enum definition.'
 
   Names = {
     # -- Warnings
@@ -63,7 +64,8 @@ class Linter(object):
     Errors.notDefined: "Bug Risk/Symbol Undefined",
     Errors.missingFieldNumber: "Bug Risk/Missing Field Number",
     Errors.unexpectedToken: "Bug Risk/Unexpected Token",
-    Errors.unexpectedEnd: "Bug Risk/Unexpected End of Input"
+    Errors.unexpectedEnd: "Bug Risk/Unexpected End of Input",
+    Errors.duplicateEnumValue: "Bug Risk/Duplicate Enum Value"
   }
 
   Severity = {
@@ -83,7 +85,8 @@ class Linter(object):
     Errors.notDefined: "critical",
     Errors.missingFieldNumber: "critical",
     Errors.unexpectedToken: "critical",
-    Errors.unexpectedEnd: "critical"
+    Errors.unexpectedEnd: "critical",
+    Errors.duplicateEnumValue: "critical"
   }
 
   SeverityHandler = {
@@ -109,7 +112,8 @@ class Linter(object):
     Errors.notDefined: 90000,
     Errors.missingFieldNumber: 60000,
     Errors.unexpectedToken: 60000,
-    Errors.unexpectedEnd: 50000
+    Errors.unexpectedEnd: 50000,
+    Errors.duplicateEnumValue: 70000
   }
 
   Categories = {
@@ -129,7 +133,8 @@ class Linter(object):
     Errors.notDefined: ["Bug Risk"],
     Errors.missingFieldNumber: ["Bug Risk"],
     Errors.unexpectedToken: ["Bug Risk"],
-    Errors.unexpectedEnd: ["Bug Risk"]
+    Errors.unexpectedEnd: ["Bug Risk"],
+    Errors.duplicateEnumValue: ["Bug Risk"]
   }
 
   Message = {
@@ -149,7 +154,8 @@ class Linter(object):
     Errors.notDefined: "Symbol \"%(context)s\" was not defined.",
     Errors.missingFieldNumber: "Missing field number",
     Errors.unexpectedToken: "Expected token: \"%(context)s\".",
-    Errors.unexpectedEnd: "Unexpected end of input, missing '}'"
+    Errors.unexpectedEnd: "Unexpected end of input, missing '}'",
+    Errors.duplicateEnumValue: "%(message)s"
   }
 
   ## -- Internals -- ##
@@ -345,7 +351,9 @@ class Linter(object):
       return Linter.Errors.unexpectedToken
     elif 'reached end of input' in error_msg:
       return Linter.Errors.unexpectedEnd
-    return None
+    elif 'uses the same enum value as' in error_msg:
+      return Linter.Errors.duplicateEnumValue
+    raise NotImplementedError("Error is not implemented: '%s'" % error_msg)
 
   def __resolve_context(self, resolved_error, error_message):
 
@@ -363,6 +371,8 @@ class Linter(object):
       return  # no context needed
     elif resolved_error == Linter.Errors.missingFieldNumber:
       return  # compiler provides no context for missing field number errors
+    elif resolved_error == Linter.Errors.duplicateEnumValue:
+      return  # no context for duplicate enum values
     elif resolved_error == Linter.Errors.importUnresolved:
       error_split = error_message.split("\"")
       if len(error_split) > 2 and ".proto" in error_split[1]:
@@ -506,6 +516,39 @@ class Linter(object):
               protocontext=rw_column)
 
             continue
+
+        alt_warning_split = raw_issue.split(": ")
+        if len(alt_warning_split) == 2:
+          if '.proto' in alt_warning_split[0]:
+            # alt warning format:
+            # 'sample/Sample.proto: "sample.two" uses the same enum value as "sample.ONE". If this is intended, set 'option allow_alias = true;' to the enum definition.'
+            alt_filename, alt_message = tuple(alt_warning_split)
+            alt_filename = alt_filename.replace("'", "")
+            alt_line, alt_column = (1, 1)
+
+            if ':' in alt_filename:
+              alt_filename_split = alt_filename.split(':')
+              if len(rwp_split) == 2:  # it's a line reference, like `Blah.proto:123`
+                try:
+                  alt_line = int(alt_filename_split[-1])
+                except ValueError:
+                  output.say("Unable to decode presumed line number as integer: \"%s\"." % alt_filename_split[-1])
+              elif len(alt_filename_split) == 3:  # it's a line and column reference, like `Blah.proto:123:45`
+                try:
+                  alt_line = int(alt_filename_split[-2])
+                  alt_column = int(alt_filename_split[-1])
+                except ValueError:
+                  output.say("Unable to decode presumed line and column number as integers: \"%s\"." % str(alt_filename_split[-2:]))
+
+            yield Error(
+              self,
+              raw=raw_issue,
+              type=self.__resolve_error(alt_message.lower()),
+              message=alt_message,
+              protofile=alt_filename,
+              protoline=alt_line,
+              protocolumn=alt_column,
+              protocontext=None)
 
         # not an error
         raise NotImplementedError("No way to handle output: '%s'" % raw_issue)
@@ -669,12 +712,14 @@ class BaseIssue(object):
     self.line = protoline or 1
     self.column = protocolumn or 1
     self.context = protocontext
-    self.message = Linter.Message[type] % self.render_context()
+    self.message = Linter.Message[type] % self.render_context(message)
 
   ## -- Methods -- ##
-  def render_context(self):
+  def render_context(self, message):
 
     """ Return a context for rendering snippets of text.
+
+        :param message: Message to provide.
         :returns: Dictionary context for rendering messages. """
 
     return {
@@ -683,7 +728,8 @@ class BaseIssue(object):
       "column": self.column,
       "context": self.context,
       "type": self.type,
-      "raw": self.raw
+      "raw": self.raw,
+      "message": message
     }
 
   def serialize(self, exported):
@@ -708,9 +754,9 @@ class BaseIssue(object):
         :returns: Formatted location. """
 
     if self.line and not self.column:
-      return "%(file)s:%(line)s" % self.render_context()
+      return "%(file)s:%(line)s" % self.render_context(self.message)
     elif self.line and self.column:
-      return "%(file)s:%(line)s:%(column)s" % self.render_context()
+      return "%(file)s:%(line)s:%(column)s" % self.render_context(self.message)
     return self.file
 
   def format_context(self):
@@ -774,7 +820,7 @@ class Issue(BaseIssue):
     return {
       "type": "issue",
       "check_name": Linter.Names[self.type],
-      "description": Linter.Message[self.type] % self.render_context(),
+      "description": Linter.Message[self.type] % self.render_context(self.message),
       "categories": Linter.Categories[self.type],
       "severity": Linter.Severity[self.type],
       "fingerprint": self.unique_hash,
@@ -832,7 +878,7 @@ class Error(BaseIssue):
     return {
       "type": "issue",
       "check_name": Linter.Names[self.type],
-      "description": Linter.Message[self.type] % self.render_context(),
+      "description": Linter.Message[self.type] % self.render_context(self.message),
       "categories": Linter.Categories[self.type],
       "severity": Linter.Severity[self.type],
       "fingerprint": self.unique_hash,
