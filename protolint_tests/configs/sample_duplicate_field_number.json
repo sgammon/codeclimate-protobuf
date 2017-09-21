@@ -1,0 +1,8 @@
+{
+  "include_paths": [
+    "protos/repeated_field_number"
+  ],
+  "config": {
+    "example": "hello"
+  }
+}

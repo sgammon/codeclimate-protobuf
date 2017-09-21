@@ -1,0 +1,13 @@
+
+syntax = "proto3";
+
+package sample;
+
+
+message Sample {
+  string test = 1;
+  int32 test2 = 2;
+  string blab = 3;
+  string blab2 = 3;
+  int32 test3 = 3;
+}

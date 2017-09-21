@@ -127,3 +127,14 @@ class RunnerTests(unittest.TestCase):
       sys.argv = ['', 'protolint_tests/configs/sample_unrecognized_type.json', 'protolint_tests/protos/unrecognized_type']
       run_tool()
     restore_streams()
+
+  def test_run_linter_duplicate_field(self):
+
+    """ test a full run of the linter on a duplicate field number """
+
+    switchout_streams()
+    with self.assertRaises(SystemExit) as exit:
+      from protolint.__main__ import run_tool
+      sys.argv = ['', 'protolint_tests/configs/sample_duplicate_field_number.json', 'protolint_tests/protos/repeated_field_number']
+      run_tool()
+    restore_streams()

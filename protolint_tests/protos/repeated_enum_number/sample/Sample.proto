@@ -1,0 +1,17 @@
+
+syntax = "proto3";
+
+package sample;
+
+
+message Sample {
+  string test = 1;
+  int32 test2 = 2;
+}
+
+
+enum Failure {
+	ONE = 0;
+	TWO = 1;
+	THREE = 1;
+}

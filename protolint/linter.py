@@ -47,6 +47,7 @@ class Linter(object):
     unexpectedEnd = 14  # 'TotallyBorked.proto:10:1: Reached end of input in message definition (missing '}').'
     duplicateEnumValue = 15  # 'sample/Sample.proto: "sample.two" uses the same enum value as "sample.ONE". If this is intended, set 'option allow_alias = true;' to the enum definition.'
     firstEnumValueMustBeZero = 16  # 'the first enum value must be zero in proto3.'
+    fieldNumberAlreadyUsed = 17  # 'field number 3 has already been used in "sample.sample" by field "blab".'
 
   Names = {
     # -- Warnings
@@ -67,7 +68,8 @@ class Linter(object):
     Errors.unexpectedToken: "Bug Risk/Unexpected Token",
     Errors.unexpectedEnd: "Bug Risk/Unexpected End of Input",
     Errors.duplicateEnumValue: "Bug Risk/Duplicate Enum Value",
-    Errors.firstEnumValueMustBeZero: "Bug Risk/First Enum Value"
+    Errors.firstEnumValueMustBeZero: "Bug Risk/First Enum Value",
+    Errors.fieldNumberAlreadyUsed: "Bug Risk/Field Number Used"
   }
 
   Severity = {
@@ -82,20 +84,22 @@ class Linter(object):
     Warnings.importUnused: "minor",
 
     # -- Errors
-    Errors.fileNotFound: "critical",
-    Errors.importUnresolved: "critical",
-    Errors.notDefined: "critical",
-    Errors.missingFieldNumber: "critical",
+    Errors.fileNotFound: "blocker",
+    Errors.importUnresolved: "blocker",
+    Errors.notDefined: "blocker",
+    Errors.missingFieldNumber: "blocker",
     Errors.unexpectedToken: "critical",
     Errors.unexpectedEnd: "critical",
     Errors.duplicateEnumValue: "critical",
-    Errors.firstEnumValueMustBeZero: "critical"
+    Errors.firstEnumValueMustBeZero: "critical",
+    Errors.fieldNumberAlreadyUsed: "critical"
   }
 
   SeverityHandler = {
     "major": output.error,
     "minor": output.warn,
-    "critical": output.critical
+    "critical": output.critical,
+    "blocker": output.critical
   }
 
   Remediation = {
@@ -117,7 +121,8 @@ class Linter(object):
     Errors.unexpectedToken: 60000,
     Errors.unexpectedEnd: 50000,
     Errors.duplicateEnumValue: 70000,
-    Errors.firstEnumValueMustBeZero: 50000
+    Errors.firstEnumValueMustBeZero: 50000,
+    Errors.fieldNumberAlreadyUsed: 60000
   }
 
   Categories = {
@@ -139,7 +144,8 @@ class Linter(object):
     Errors.unexpectedToken: ["Bug Risk"],
     Errors.unexpectedEnd: ["Bug Risk"],
     Errors.duplicateEnumValue: ["Bug Risk"],
-    Errors.firstEnumValueMustBeZero: ["Bug Risk", "Style"]
+    Errors.firstEnumValueMustBeZero: ["Bug Risk", "Style"],
+    Errors.fieldNumberAlreadyUsed: ["Bug Risk"]
   }
 
   Message = {
@@ -161,7 +167,8 @@ class Linter(object):
     Errors.unexpectedToken: "Expected token: \"%(context)s\".",
     Errors.unexpectedEnd: "Unexpected end of input, missing '}'",
     Errors.duplicateEnumValue: "%(message)s",
-    Errors.firstEnumValueMustBeZero: "the first enum value must be zero in proto3"
+    Errors.firstEnumValueMustBeZero: "the first enum value must be zero in proto3",
+    Errors.fieldNumberAlreadyUsed: "%(message)s"
   }
 
   ## -- Internals -- ##
@@ -361,6 +368,8 @@ class Linter(object):
       return Linter.Errors.duplicateEnumValue
     elif 'first enum value must be zero' in error_msg:
       return Linter.Errors.firstEnumValueMustBeZero
+    elif 'field number' in error_msg and 'has already been used' in error_msg:
+      return Linter.Errors.fieldNumberAlreadyUsed
     raise NotImplementedError("Error is not implemented: '%s'" % error_msg)
 
   def __resolve_context(self, resolved_error, error_message):
@@ -383,6 +392,8 @@ class Linter(object):
       return  # no context for duplicate enum values
     elif resolved_error == Linter.Errors.firstEnumValueMustBeZero:
       return # no context since it's self-explanatory
+    elif resolved_error == Linter.Errors.fieldNumberAlreadyUsed:
+      return  # context is in the message
     elif resolved_error == Linter.Errors.importUnresolved:
       error_split = error_message.split("\"")
       if len(error_split) > 2 and ".proto" in error_split[1]:
