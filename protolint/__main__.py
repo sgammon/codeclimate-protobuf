@@ -28,10 +28,12 @@ def run_tool():
 
   args = cli.parser.parse_args()
 
-  if not args.config:
+  if not args.config:  # pragma: no cover
     output.error("Must provide argument 'config'. See --help for more.")
-  if not args.workspace:
+    sys.exit(1)
+  if not args.workspace:  # pragma: no cover
     output.error("Must provide argument 'workspace'. See --help for more.")
+    sys.exit(1)
 
   filepath, workspace = (args.config, args.workspace)
 

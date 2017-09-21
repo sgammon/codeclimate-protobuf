@@ -39,11 +39,11 @@ class LinterConfig(object):
 
         output.say("Parsed config: \n" + pprint.pformat(self._config, indent=2))
 
-    except IOError as e:
+    except IOError as e:  # pragma: no cover
       print("Encountered IOError while reading config file: %s" % e)
       sys.exit(1)
 
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
       print("Encountered unhandled exception while reading config file: %s" % e)
       sys.exit(1)
 
