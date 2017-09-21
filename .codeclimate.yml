@@ -1,14 +1,7 @@
 engines:
   fixme:
     enabled: false
-  duplication:
-    enabled: false
-    config:
-      languages:
-      - python
   git-legal:
-    enabled: false
-  gnu-complexity:
     enabled: false
   pep8:
     enabled: true
