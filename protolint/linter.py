@@ -151,7 +151,7 @@ class Linter(object):
     Warnings.enumValueCase: "Use CamelCase (with an initial capital) for service names.",
     Warnings.rpcMethodCase: "Use CamelCase (with an initial capital) for RPC method names.",
     Warnings.syntaxUnspecified: "No syntax specified for the proto file: %(file)s. Please use 'syntax = \"proto2\";' or 'syntax = \"proto3\";' to specify a syntax version.",
-    Warnings.importUnused: "Import %(context)s not used.",
+    Warnings.importUnused: "Import %(context)s was not used.",
 
     # -- Errors
     Errors.fileNotFound: "File not found: %(file)s.",
@@ -523,7 +523,7 @@ class Linter(object):
               protofile=rw_protofile,
               protoline=rw_line,
               protocolumn=rw_column,
-              protocontext=rw_column)
+              protocontext=rw_context)
 
             continue
 

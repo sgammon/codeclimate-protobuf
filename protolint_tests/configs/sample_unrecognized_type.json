@@ -1,0 +1,9 @@
+{
+  "include_paths": [
+    "base/",
+    "sample/"
+  ],
+  "config": {
+    "example": "hello"
+  }
+}
