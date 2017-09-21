@@ -1,0 +1,18 @@
+
+syntax = "proto3";
+
+package sample;
+
+import "base/TestMessage.proto";
+
+
+message Sample {
+  string test = 1;
+  int32 test2 = 2;
+}
+
+
+enum failure {
+  ONE = 0;
+  TWO = 1;
+}

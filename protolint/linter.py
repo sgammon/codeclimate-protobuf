@@ -33,17 +33,18 @@ class Linter(object):
     serviceCase = 5  # 'Use CamelCase (with an initial capital) for service names.'
     rpcMethodCase = 6  # 'Use CamelCase (with an initial capital) for RPC method names.'
     syntaxUnspecified = 7  # '[libprotobuf WARNING google/protobuf/compiler/parser.cc:546] No syntax specified for the proto file: exchange.proto.
+    importUnused = 8  # 'auth/AuthorizeUserResponse.proto: warning: Import partner/PartnerLocation.proto but not used.'
 
   class Errors(Enum):
 
     """ Enumerated errors from the compiler. """
 
-    fileNotFound = 8  # 'base/TestMessage.proto: File not found.'
-    importUnresolved = 9  # 'invalid_import/sample/Sample.proto: Import "base/TestMessage.proto" was not found or had errors.'
-    notDefined = 10  # 'invalid_import/sample/Sample.proto:13:3: "testMessage" is not defined.'
-    missingFieldNumber = 11  # 'set2/TestMessage2Proto2.proto:10:37: Missing field number.'
-    unexpectedToken = 12  # 'TotallyBorked.proto:9:3: Expected ";".'
-    unexpectedEnd = 13  # 'TotallyBorked.proto:10:1: Reached end of input in message definition (missing '}').'
+    fileNotFound = 9  # 'base/TestMessage.proto: File not found.'
+    importUnresolved = 10  # 'invalid_import/sample/Sample.proto: Import "base/TestMessage.proto" was not found or had errors.'
+    notDefined = 11  # 'invalid_import/sample/Sample.proto:13:3: "testMessage" is not defined.'
+    missingFieldNumber = 12  # 'set2/TestMessage2Proto2.proto:10:37: Missing field number.'
+    unexpectedToken = 13  # 'TotallyBorked.proto:9:3: Expected ";".'
+    unexpectedEnd = 14  # 'TotallyBorked.proto:10:1: Reached end of input in message definition (missing '}').'
 
   Names = {
     # -- Warnings
@@ -54,6 +55,7 @@ class Linter(object):
     Warnings.enumValueCase: "Style/Enum Value Case",
     Warnings.rpcMethodCase: "Style/RPC Method Case",
     Warnings.syntaxUnspecified: "Bug Risk/Syntax Unspecified",
+    Warnings.importUnused: "Style/Import Unused",
 
     # -- Errors
     Errors.fileNotFound: "Bug Risk/File Not Found",
@@ -73,6 +75,7 @@ class Linter(object):
     Warnings.enumValueCase: "major",
     Warnings.rpcMethodCase: "major",
     Warnings.syntaxUnspecified: "minor",
+    Warnings.importUnused: "minor",
 
     # -- Errors
     Errors.fileNotFound: "critical",
@@ -98,6 +101,7 @@ class Linter(object):
     Warnings.enumValueCase: 70000,
     Warnings.rpcMethodCase: 70000,
     Warnings.syntaxUnspecified: 50000,
+    Warnings.importUnused: 50000,
 
     # -- Errors
     Errors.fileNotFound: 90000,
@@ -117,6 +121,7 @@ class Linter(object):
     Warnings.enumValueCase: ["Compatibility", "Style"],
     Warnings.rpcMethodCase: ["Compatibility", "Style"],
     Warnings.syntaxUnspecified: ["Compatibility", "Style", "Bug Risk"],
+    Warnings.importUnused: ["Style"],
 
     # -- Errors
     Errors.fileNotFound: ["Bug Risk"],
@@ -136,6 +141,7 @@ class Linter(object):
     Warnings.enumValueCase: "Use CamelCase (with an initial capital) for service names.",
     Warnings.rpcMethodCase: "Use CamelCase (with an initial capital) for RPC method names.",
     Warnings.syntaxUnspecified: "No syntax specified for the proto file: %(file)s. Please use 'syntax = \"proto2\";' or 'syntax = \"proto3\";' to specify a syntax version.",
+    Warnings.importUnused: "Import %(context)s not used.",
 
     # -- Errors
     Errors.fileNotFound: "File not found: %(file)s.",
@@ -311,6 +317,8 @@ class Linter(object):
       return Linter.Warnings.rpcMethodCase
     elif 'no syntax specified' in issue_msg:
       return Linter.Warnings.syntaxUnspecified
+    elif 'import' in issue_msg and 'but not used' in issue_msg:
+      return Linter.Warnings.importUnused
     else:
       raise ValueError('cannot parse issue line for type: %s' % issue_msg)
 
@@ -378,6 +386,7 @@ class Linter(object):
     # TestMessageProto3.proto:19:9: 'sampleLameMessageTitle' - Use CamelCase (with an initial capital) for message names.
     # TestMessageProto3.proto:25:10: 'aggravatingCamelCase' - Use underscore_separated_names for field names.
     # TestMessageProto3.proto:14:3: 'hello' - Use CAPITALS_WITH_UNDERSCORES  for enum value names.
+    # auth/AuthorizeUserResponse.proto: warning: Import partner/PartnerLocation.proto but not used.
     for raw_issue in issue_output:
       # @TODO(sgammon): all of this parsing code needs cleanup work
       issue_split = raw_issue.split(' - ')
@@ -445,6 +454,56 @@ class Linter(object):
               protoline=1,
               protocolumn=1,
               protocontext=None)
+
+            continue
+
+        if 'warning:' in raw_issue:
+          # it's a raw warning, perhaps file-level
+          # 'auth/AuthorizeUserResponse.proto: warning: Import partner/PartnerLocation.proto but not used.'
+          rw_split = raw_issue.split(': ')
+          if rw_split[1] == "warning":
+            # it's a warning, like above
+            rw_protofile, rw_context, rw_message, rw_line, rw_column = (
+              rw_split[0].strip().replace("'", ""),
+              None,
+              rw_split[-1],
+              1,
+              1)
+
+            for rw_block in rw_split[1:]:
+              if '.proto' in rw_block:
+                rw_subsplit = rw_block.split(" ")
+                for rw_subblock in rw_subsplit:
+                  if '.proto' in rw_subblock:
+                    # we found it
+                    rw_context = rw_subblock.strip()
+                    break
+                if rw_context is not None:
+                  break
+
+            if ':' in rw_protofile:
+              rwp_split = rw_protofile.split(':')
+              if len(rwp_split) == 2:  # it's a line reference, like `Blah.proto:123`
+                try:
+                  rw_line = int(rwp_split[-1])
+                except ValueError:
+                  output.say("Unable to decode presumed line number as integer: \"%s\"." % rwp_split[-1])
+              elif len(rwp_split) == 3:  # it's a line and column reference, like `Blah.proto:123:45`
+                try:
+                  rw_line = int(rwp_split[-2])
+                  rw_column = int(rwp_split[-1])
+                except ValueError:
+                  output.say("Unable to decode presumed line and column number as integers: \"%s\"." % str(rwp_split[-2:]))
+
+            yield Issue(
+              self,
+              raw=raw_issue,
+              type=self.__resolve_warning(rw_message.lower()),
+              message=rw_message,
+              protofile=rw_protofile,
+              protoline=rw_line,
+              protocolumn=rw_column,
+              protocontext=rw_column)
 
             continue
 

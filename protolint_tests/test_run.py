@@ -83,3 +83,14 @@ class RunnerTests(unittest.TestCase):
       sys.argv = ['', 'protolint_tests/configs/sample_invalid_syntax2.json', 'protolint_tests/']
       run_tool()
     restore_streams()
+
+  def test_run_linter_unused_import(self):
+
+    """ test a full run of the linter on an unused import """
+
+    switchout_streams()
+    with self.assertRaises(SystemExit) as exit:
+      from protolint.__main__ import run_tool
+      sys.argv = ['', 'protolint_tests/configs/sample_unused_import.json', 'protolint_tests/protos/unused_import']
+      run_tool()
+    restore_streams()
