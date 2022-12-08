@@ -1,4 +1,4 @@
-certifi==2017.7.27.1
+certifi==2022.12.7
 chardet==3.0.4
 codeclimate-test-reporter==0.2.3
 colorlog==3.0.1
